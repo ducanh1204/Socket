@@ -1,7 +1,6 @@
 package com.example.socket;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import android.graphics.Color;
 import android.os.Build;
@@ -9,34 +8,27 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     private ServerSocket serverSocket;
-    public static final int SERVER_PORT = 2222;
+    public static final int SERVER_PORT = 5050;
     private LinearLayout msgList;
     private Handler handler;
-    private Socket socket;
+//    private Socket socket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
         long delay = 100L;
         Timer timer = new Timer("Timers");
         timer.schedule(timerTask, 0, delay);
+
+//        startCreateSocket();
+
     }
 
     private void startCreateSocket() {
@@ -63,31 +58,42 @@ public class MainActivity extends AppCompatActivity {
             serverSocket = new ServerSocket(SERVER_PORT);
             if (serverSocket != null) {
                 try {
-                    socket = serverSocket.accept();
-//                        BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
-//                        String str = br.lines().collect(Collectors.joining());
-                    //showMessage(str, Color.BLUE, false);
-//                        handler.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                tv.setText(str);
-//                            }
-//                        });
+                    Socket socket = serverSocket.accept();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            msgList.removeAllViews();
+                        }
+                    });
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+//                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+//                    boolean a = br.ready();
+//                    while (!br.ready()){
+//                        br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+//                    }
+//                    String str = br.readLine();
+//                    Log.e("readLine", "readLine");
+//                    showMessage(str, Color.BLUE, false);
+
                     InputStream stream = socket.getInputStream();
                     int allSize = stream.available();
-                    byte[] data = new byte[stream.available()];
+                    byte[] data = new byte[allSize];
                     stream.read(data);
+                    stream.close();
                     String str = new String(data, StandardCharsets.UTF_8);
                     showMessage(str, Color.BLUE, false);
 
-                    Log.e("RESULT", allSize + "");
+                    socket.close();
 
                 } catch (IOException e) {
 
                 } finally {
-                    Log.e("RESULT", "sssssss");
                     try {
-                        socket.close();
                         serverSocket.close();
                     } catch (IOException ioException) {
                     }
